@@ -6,9 +6,12 @@
 
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim4;
+
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_TIM4_Init(void);
 static void MX_SPI1_Init(void);
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,6 +36,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_TIM4_Init();
+
+  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
 
   HAL_Delay(200);
   Init_7219();
@@ -42,9 +48,14 @@ int main(void)
   int counter = 0;
 
   while (1) {
+    HAL_Delay(20);
+    int c = __HAL_TIM_GET_COUNTER(&htim4);
+    if (c != counter)
+    {
+      counter = c;
       Clear_7219();
-      Number_7219_non_decoding(4444);
-      HAL_Delay(50);
+      Number_7219_non_decoding(counter);
+    }
   }
 
 }
@@ -86,6 +97,37 @@ void SystemClock_Config(void)
     /* Initialization Error */
     while(1);
   }
+
+}
+
+/* TIM4 init function */
+static void MX_TIM4_Init(void)
+{
+
+  TIM_Encoder_InitTypeDef sConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 0;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 64799;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_FALLING;;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  HAL_TIM_Encoder_Init(&htim4, &sConfig);
+
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig);
 
 }
 
