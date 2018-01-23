@@ -42,7 +42,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "max7219.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

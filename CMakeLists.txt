@@ -1,4 +1,4 @@
-PROJECT(stm32learn)
+PROJECT(tv16_control)
 cmake_minimum_required(VERSION 2.6)
 
 SET(STM32CubeF1_FW /home/nikolais/STM32Cube/Repository/STM32Cube_FW_F1_V1.6.0)
@@ -39,7 +39,7 @@ SET(STARTUP ${STARTUP}
     ${HAL_LIB_SRC}/stm32f1xx_hal_uart.c
 )
 SET_PROPERTY(SOURCE startup_stm32f103xb.s PROPERTY LANGUAGE C)
-SET(SRC Src/main.c Src/stm32f1xx_it.c Src/stm32f1xx_hal_msp.c)
+SET(SRC Src/main.c Src/max7219.c Src/stm32f1xx_it.c Src/stm32f1xx_hal_msp.c)
 
 SET(DEBUG_FLAGS "-Og -g")
 
