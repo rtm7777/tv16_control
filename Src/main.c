@@ -6,11 +6,13 @@
 
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_SPI1_Init(void);
 
@@ -36,26 +38,24 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_TIM3_Init();
   MX_TIM4_Init();
 
-  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_Base_Start_IT(&htim3);
 
   HAL_Delay(200);
   Init_7219();
   Clear_7219();
-  Number_7219_non_decoding(4444);
-
-  int counter = 0;
 
   while (1) {
-    HAL_Delay(20);
-    int c = __HAL_TIM_GET_COUNTER(&htim4);
-    if (c != counter)
-    {
-      counter = c;
-      Clear_7219();
-      Number_7219_non_decoding(counter);
-    }
+    // HAL_Delay(20);
+    // int c = __HAL_TIM_GET_COUNTER(&htim4);
+    // if (c != counter)
+    // {
+    //   counter = c;
+    //   Clear_7219();
+    //   Number_7219_non_decoding(counter);
+    // }
   }
 
 }
@@ -97,6 +97,30 @@ void SystemClock_Config(void)
     /* Initialization Error */
     while(1);
   }
+
+}
+
+/* TIM3 init function */
+static void MX_TIM3_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 36000;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1499;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  HAL_TIM_Base_Init(&htim3);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig);
 
 }
 
@@ -173,6 +197,32 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CRCPolynomial = 10;
 
   HAL_SPI_Init(&hspi1);
+
+}
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance==TIM3)
+  {
+    int counter = __HAL_TIM_GET_COUNTER(&htim4);
+    TIM4->CNT = 0x0000;
+    int speed = 0;
+    if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim4))
+    {
+      speed = (64799 - counter) / 30;
+      if (counter == 0)
+      {
+        speed = 0;
+      }
+    }
+    else
+    {
+      speed = counter / 30;
+    }
+    Clear_7219();
+    Number_7219_non_decoding(speed);
+  }
 
 }
 
