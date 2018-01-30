@@ -42,6 +42,7 @@ int main(void)
   MX_TIM4_Init();
 
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
 
   HAL_Delay(200);
   Init_7219();
@@ -206,22 +207,36 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance==TIM3)
   {
     int counter = __HAL_TIM_GET_COUNTER(&htim4);
-    TIM4->CNT = 0x0000;
-    int speed = 0;
-    if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim4))
-    {
-      speed = (64799 - counter) / 30;
+    if (0) {
+      int degree = 0;
       if (counter == 0)
       {
-        speed = 0;
+        degree = 0;
+      } else {
+        degree = counter * 15;
       }
+      Clear_7219();
+      Number_7219_dot(degree);
     }
     else
     {
-      speed = counter / 30;
+      TIM4->CNT = 0x0000;
+      int speed = 0;
+      if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim4))
+      {
+        speed = (64799 - counter) / 30;
+        if (counter == 0)
+        {
+          speed = 0;
+        }
+      }
+      else
+      {
+        speed = counter / 30;
+      }
+      Clear_7219();
+      Number_7219_non_decoding(speed);
     }
-    Clear_7219();
-    Number_7219_non_decoding(speed);
   }
 
 }

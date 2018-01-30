@@ -93,6 +93,35 @@ void Number_7219_non_decoding(volatile long n)
   }
 }
 //------------------------------------------------------
+void Number_7219_dot(volatile long n)
+{
+  if (n == 0)
+  {
+    Send_7219(1, symbols[0]);
+    Send_7219(2, symbols[0]);
+    Send_7219(3, SymbolWithDot(symbols[0]));
+    return;
+  }
+  uint8_t i=0;
+  do
+  {
+    i++;
+    if (i == 3)
+    {
+      Send_7219(i, SymbolWithDot(symbols[n%10]));
+    }
+    else
+    {
+      Send_7219(i, symbols[n%10]);
+    }
+    n/=10;
+  } while(n);
+  if (i < 3)
+  {
+    Send_7219(i+1, SymbolWithDot(symbols[0]));
+  }
+}
+//------------------------------------------------------
 void TickerBar_7219(char line[], int line_lenght, int speed)
 {
   Clear_7219();
