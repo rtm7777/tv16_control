@@ -9,6 +9,8 @@ SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
+int divider_mode = 0; // PC14: 0 - spead measurement mode, 1 - divider mode
+
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -44,19 +46,33 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
 
-  HAL_Delay(200);
+  HAL_Delay(100);
   Init_7219();
   Clear_7219();
 
   while (1) {
-    // HAL_Delay(20);
-    // int c = __HAL_TIM_GET_COUNTER(&htim4);
-    // if (c != counter)
-    // {
-    //   counter = c;
-    //   Clear_7219();
-    //   Number_7219_non_decoding(counter);
-    // }
+    HAL_Delay(100);
+
+    if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) != divider_mode)
+    {
+      if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == 0)
+      {
+        divider_mode = 0;
+        __HAL_TIM_SET_AUTORELOAD(&htim3, 1499);
+        __HAL_TIM_SET_AUTORELOAD(&htim4, 64799);
+        TIM3->EGR = TIM_EGR_UG;
+        TIM4->EGR = TIM_EGR_UG;
+
+      }
+      else
+      {
+        divider_mode = 1;
+        __HAL_TIM_SET_AUTORELOAD(&htim3, 200);
+        __HAL_TIM_SET_AUTORELOAD(&htim4, 2399);
+        TIM3->EGR = TIM_EGR_UG;
+        TIM4->EGR = TIM_EGR_UG;
+      }
+    }
   }
 
 }
@@ -177,6 +193,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PC14  divider mode select*/
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
 }
 
 /* SPI1 init function */
@@ -207,7 +229,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance==TIM3)
   {
     int counter = __HAL_TIM_GET_COUNTER(&htim4);
-    if (0) {
+    if (divider_mode) {
       int degree = 0;
       if (counter == 0)
       {
