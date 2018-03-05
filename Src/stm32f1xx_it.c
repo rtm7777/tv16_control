@@ -3,6 +3,7 @@
 #include "stm32f1xx.h"
 #include "stm32f1xx_it.h"
 
+
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -144,9 +145,8 @@ void TIM3_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-  if (__HAL_GPIO_EXTI_GET_FLAG(GPIO_PIN_12)) {
-    Clear_7219();
-    Number_7219_non_decoding(88888);
+  if (__HAL_GPIO_EXTI_GET_FLAG(GPIO_PIN_12) || __HAL_GPIO_EXTI_GET_FLAG(GPIO_PIN_15)) {
+    StopInverter();
   }
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);

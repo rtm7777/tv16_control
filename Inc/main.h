@@ -43,6 +43,7 @@
 /* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "max7219.h"
+#include "inverter.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
