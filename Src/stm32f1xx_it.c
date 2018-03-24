@@ -8,6 +8,7 @@
   * @{
   */
 
+extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 
 /** @addtogroup Templates
@@ -123,6 +124,22 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
   // HAL_SYSTICK_IRQHandler();
+}
+
+/**
+* @brief This function handles TIM2 global interrupt.
+*/
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+  int counter = __HAL_TIM_GET_COUNTER(&htim2);
+  SetFreq_7219(counter/2);
+  UpdateFreqCurrent_2719(1);
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+
+  /* USER CODE END TIM2_IRQn 1 */
 }
 
 /**

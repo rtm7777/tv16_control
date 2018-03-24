@@ -2,7 +2,11 @@
 
 uint8_t aTxBuf[1]={0};
 extern SPI_HandleTypeDef hspi1;
-char dg=5;
+char dg0=5;
+char dg1=8;
+
+int freq = 5;
+int current = 0;
 
 char symbols[]={
   0x7e, // 0
@@ -17,6 +21,7 @@ char symbols[]={
   0x7b, // 9
   0x01, // -
   0x00, // ""
+  0x09, // =
 
   0x77, // A
   0x1F, // b
@@ -40,8 +45,10 @@ char symbols[]={
   0x3B, // Y
 };
 
-#define cs_set() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-#define cs_reset() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET)
+#define cs0_set() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET)
+#define cs1_set() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET)
+#define cs0_reset() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET)
+#define cs1_reset() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET)
 
 int Symbol(int number)
 {
@@ -53,27 +60,36 @@ int SymbolWithDot(int symbol)
   return symbol |= 1 << 7;
 }
 
-void Send_7219 (uint8_t rg, uint8_t dt)
+//------------------------------------------------------
+void Send_7219 (int chipNumber, uint8_t rg, uint8_t dt)
 {
-  cs_set();
+  (chipNumber) ? (cs1_set()) : (cs0_set());
+
   aTxBuf[0]=rg;
   HAL_SPI_Transmit (&hspi1, (uint8_t*)aTxBuf, 1, 5000);
   aTxBuf[0]=dt;
   HAL_SPI_Transmit (&hspi1, (uint8_t*)aTxBuf, 1, 5000);
-  cs_reset();
+
+  (chipNumber) ? (cs1_reset()) : (cs0_reset());
 }
+
 //------------------------------------------------------
-void Clear_7219(void)
+void Clear_7219(int chipNumber)
 {
-  uint8_t i=dg;
+  uint8_t i=dg0;
+
+  if (chipNumber)
+    i = dg1;
+
   do
   {
-    Send_7219(i,0x00); //for non decoding mode
+    Send_7219(chipNumber, i, 0x00); //for non decoding mode
     // Send_7219(i,0xF); //for decoding mode
   } while (--i);
 }
+
 //------------------------------------------------------
-void Number_7219_non_decoding(volatile long n)
+void Number_7219_non_decoding(int chipNumber, volatile long n)
 {
   uint8_t ng=0;
   if(n<0)
@@ -84,22 +100,63 @@ void Number_7219_non_decoding(volatile long n)
   uint8_t i=0;
   do
   {
-    Send_7219(++i, symbols[n%10]);
+    Send_7219(chipNumber, ++i, symbols[n%10]);
     n/=10;
   } while(n);
   if(ng)
   {
-    Send_7219(i+1, symbols[10]);
+    Send_7219(chipNumber, i+1, symbols[10]);
   }
 }
+
+void SetFreq_7219(int frequency)
+{
+  freq = frequency;
+}
+
+void SetCurrent_7219(int current)
+{
+  current = current;
+}
+
+void UpdateFreqCurrent_2719(int chipNumber)
+{
+  Clear_7219(1);
+
+  if (current < 10)
+  {
+    Send_7219(chipNumber, 1, symbols[current]);
+    Send_7219(chipNumber, 2, SymbolWithDot(symbols[0]));
+  }
+  else
+  {
+    Send_7219(chipNumber, 1, symbols[current%10]);
+    Send_7219(chipNumber, 2, SymbolWithDot(symbols[(current/10)%10]));
+  }
+  Send_7219(chipNumber, 3, symbols[12]);
+  Send_7219(chipNumber, 4, symbols[1]);
+  if (freq < 10)
+  {
+    Send_7219(chipNumber, 5, symbols[11]);
+    Send_7219(chipNumber, 6, symbols[freq]);
+  }
+  else
+  {
+    Send_7219(chipNumber, 5, symbols[freq%10]);
+    Send_7219(chipNumber, 6, symbols[(freq/10)%10]);
+  }
+  Send_7219(chipNumber, 7, symbols[12]);
+  Send_7219(chipNumber, 8, symbols[18]);
+}
+
 //------------------------------------------------------
-void Number_7219_dot(volatile long n)
+void Number_7219_dot(int chipNumber, volatile long n)
 {
   if (n == 0)
   {
-    Send_7219(1, symbols[0]);
-    Send_7219(2, symbols[0]);
-    Send_7219(3, SymbolWithDot(symbols[0]));
+    Send_7219(chipNumber, 1, symbols[0]);
+    Send_7219(chipNumber, 2, symbols[0]);
+    Send_7219(chipNumber, 3, SymbolWithDot(symbols[0]));
     return;
   }
   uint8_t i=0;
@@ -108,47 +165,32 @@ void Number_7219_dot(volatile long n)
     i++;
     if (i == 3)
     {
-      Send_7219(i, SymbolWithDot(symbols[n%10]));
+      Send_7219(chipNumber, i, SymbolWithDot(symbols[n%10]));
     }
     else
     {
-      Send_7219(i, symbols[n%10]);
+      Send_7219(chipNumber, i, symbols[n%10]);
     }
     n/=10;
   } while(n);
   if (i < 3)
   {
-    Send_7219(i+1, SymbolWithDot(symbols[0]));
+    Send_7219(chipNumber, i+1, SymbolWithDot(symbols[0]));
   }
 }
-//------------------------------------------------------
-void TickerBar_7219(char line[], int line_lenght, int speed)
-{
-  Clear_7219();
-  int full_length = line_lenght + dg;
-  for (int i = 1; i < full_length; i++)
-  {
-    for (int j = 0; j < dg+1; ++j)
-    {
-      if (j > i || i - j >= line_lenght)
-      {
-        Send_7219(j, 0x00);
-      }
-      else
-      {
-        Send_7219(j, line[i-j]);
-      }
-    }
-    HAL_Delay(speed);
-  }
-  Clear_7219();
-}
+
 //-------------------------------------------------------
-void Init_7219(void)
+void Init_7219()
 {
-  Send_7219(0x09, 0x00); // decoding mode
-  Send_7219(0x0B, dg-1); // number of used digits
-  Send_7219(0x0A, 0x05); // light intensity
-  Send_7219(0x0C, 0x01);
-  Clear_7219();
+  Send_7219(0, 0x09, 0x00); // decoding mode
+  Send_7219(0, 0x0B, dg0-1); // number of used digits
+  Send_7219(0, 0x0A, 0x05); // light intensity
+  Send_7219(0, 0x0C, 0x01);
+  Clear_7219(0);
+
+  Send_7219(1, 0x09, 0x00); // decoding mode
+  Send_7219(1, 0x0B, dg1-1); // number of used digits
+  Send_7219(1, 0x0A, 0x0A); // light intensity
+  Send_7219(1, 0x0C, 0x01);
+  Clear_7219(1);
 }

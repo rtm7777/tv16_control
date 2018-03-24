@@ -5,11 +5,13 @@
 
 int Symbol(int number);
 int SymbolWithDot (int number);
-void TickerBar_7219(char line[], int line_lenght, int speed);
-void Send_7219 (uint8_t rg, uint8_t dt);
-void Clear_7219 (void);
-void Number_7219_non_decoding (volatile long n);
-void Number_7219_dot (volatile long n);
-void Init_7219 (void);
+void Send_7219 (int chipNumber, uint8_t rg, uint8_t dt);
+void Clear_7219 (int chipNumber);
+void SetFreq_7219 (int frequency);
+void SetCurrent_7219 (int current);
+void UpdateFreqCurrent_2719 (int chipNumber);
+void Number_7219_non_decoding (int chipNumber, volatile long n);
+void Number_7219_dot (int chipNumber, volatile long n);
+void Init_7219 ();
 
 #endif /* MAX7219_H_ */

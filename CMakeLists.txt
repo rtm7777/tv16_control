@@ -1,7 +1,7 @@
 PROJECT(tv16_control)
 cmake_minimum_required(VERSION 2.6)
 
-SET(STM32CubeF1_FW /home/nikolais/STM32Cube/Repository/STM32Cube_FW_F1_V1.6.0)
+SET(STM32CubeF1_FW /home/nikolais/STM32Cube/Repository/STM32Cube_FW_F1_V1.6.1)
 
 INCLUDE_DIRECTORIES(
     ${STM32CubeF1_FW}/Drivers/CMSIS/Include/
