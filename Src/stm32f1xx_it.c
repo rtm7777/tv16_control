@@ -132,8 +132,19 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  int counter = __HAL_TIM_GET_COUNTER(&htim2);
-  SetFreq_7219(counter/2);
+  int counter = 0;
+  int timCounter = __HAL_TIM_GET_COUNTER(&htim2);
+  if (timCounter > 130)
+    __HAL_TIM_SET_COUNTER(&htim2, 130);
+  else if (timCounter < 11)
+    __HAL_TIM_SET_COUNTER(&htim2, 11);
+
+  counter = timCounter/2;
+
+  counter = (counter > 65) ? 65 : counter;
+  counter = (counter < 5) ? 5 : counter;
+
+  SetFreq_7219(counter);
   UpdateFreqCurrent_2719(1);
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
