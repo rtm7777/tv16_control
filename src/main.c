@@ -28,13 +28,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
 
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
-  HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_1);
 
   HAL_Delay(100);
   Init_7219();

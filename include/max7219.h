@@ -12,6 +12,6 @@ void SetCurrent_7219 (int current);
 void UpdateFreqCurrent_2719 (int chipNumber);
 void Number_7219_non_decoding (int chipNumber, volatile long n);
 void Number_7219_dot (int chipNumber, volatile long n);
-void Init_7219 ();
+void Init_7219 (void);
 
 #endif /* MAX7219_H_ */

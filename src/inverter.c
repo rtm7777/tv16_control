@@ -13,7 +13,7 @@ void StartInverter(int direction)
   }
 }
 //------------------------------------------------------
-void StopInverter()
+void StopInverter(void)
 {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, GPIO_PIN_RESET);

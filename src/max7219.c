@@ -180,7 +180,7 @@ void Number_7219_dot(int chipNumber, volatile long n)
 }
 
 //-------------------------------------------------------
-void Init_7219()
+void Init_7219(void)
 {
   Send_7219(0, 0x09, 0x00); // decoding mode
   Send_7219(0, 0x0B, dg0-1); // number of used digits
