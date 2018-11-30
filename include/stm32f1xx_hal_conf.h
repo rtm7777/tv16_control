@@ -93,6 +93,7 @@
 #define HAL_TIM_MODULE_ENABLED
 #define HAL_PWR_MODULE_ENABLED
 #define HAL_RCC_MODULE_ENABLED
+#define HAL_RTC_MODULE_ENABLED
 
 /* ########################## Oscillator Values adaptation ####################*/
 /**

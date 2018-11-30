@@ -4,13 +4,14 @@
 #include "stm32f1xx_it.h"
 #include "encoder.h"
 #include "inverter.h"
+#include "stepper_motors.h"
 
 
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
 
-extern TIM_HandleTypeDef htim2;
+extern RTC_HandleTypeDef hrtc;
 extern TIM_HandleTypeDef htim3;
 
 /** @addtogroup Templates
@@ -129,20 +130,6 @@ void SysTick_Handler(void)
 }
 
 /**
-* @brief This function handles TIM2 global interrupt.
-*/
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
 * @brief This function handles TIM3 global interrupt.
 */
 void TIM3_IRQHandler(void)
@@ -179,30 +166,19 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
-
-/******************************************************************************/
-/*                 STM32F1xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f1xx.s).                                               */
-/******************************************************************************/
-
 /**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
+  * @brief This function handles RTC global interrupt.
   */
-/*void PPP_IRQHandler(void)
+void RTC_IRQHandler(void)
 {
-}*/
+  /* USER CODE BEGIN RTC_IRQn 0 */
+  HandleOiling();
+  /* USER CODE END RTC_IRQn 0 */
+  HAL_RTCEx_RTCIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_IRQn 1 */
 
+  /* USER CODE END RTC_IRQn 1 */
+}
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

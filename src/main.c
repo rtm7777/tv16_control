@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "spi.h"
 #include "tim.h"
+#include "rtc.h"
 #include "max7219.h"
 #include "inverter.h"
 
@@ -28,11 +29,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+
+  MX_RTC_Init();
+  MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
 
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_1);
+  HAL_RTCEx_SetSecond_IT(&hrtc);
 
   HAL_Delay(100);
   Init_7219();
@@ -43,9 +48,9 @@ int main(void)
   {
     HAL_Delay(100);
 
-    if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) != divider_mode)
+    if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) != divider_mode)
     {
-      if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_14) == 0)
+      if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == 0)
       {
         divider_mode = 0;
         __HAL_TIM_SET_AUTORELOAD(&htim3, 1499);
