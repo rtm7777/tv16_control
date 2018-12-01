@@ -6,6 +6,7 @@
 #include "rtc.h"
 #include "max7219.h"
 #include "inverter.h"
+#include "stepper_motors.h"
 
 __STATIC_INLINE void DelayMicro(__IO uint32_t micros)
 {
@@ -14,7 +15,7 @@ __STATIC_INLINE void DelayMicro(__IO uint32_t micros)
   while (micros--) ;
 }
 
-int divider_mode = 0; // PC14: 0 - spead measurement mode, 1 - divider mode
+uint8_t divider_mode = 0; // PC14: 0 - spead measurement mode, 1 - divider mode
 
 void SystemClock_Config(void);
 
@@ -129,7 +130,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance==TIM3)
   {
     int counter = __HAL_TIM_GET_COUNTER(&htim4);
-    if (divider_mode) {
+    if (divider_mode)
+    {
       int degree = 0;
       if (counter == 0)
       {
@@ -158,6 +160,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       }
       Clear_7219(0);
       Number_7219_non_decoding(0, speed);
+      Update_Spindle_Revs(speed);
     }
   }
 
