@@ -15,7 +15,14 @@ __STATIC_INLINE void DelayMicro(__IO uint32_t micros)
   while (micros--) ;
 }
 
-uint8_t divider_mode = 0; // PC14: 0 - spead measurement mode, 1 - divider mode
+// Impulses count per one encoder revolution
+uint16_t opt_enc_rev_count = 2400;
+
+uint8_t opt_enc_rpm_constant;
+uint8_t opt_enc_div_constant;
+
+// PC14: 0 - spead measurement mode, 1 - divider mode
+uint8_t divider_mode = 0;
 
 void SystemClock_Config(void);
 
@@ -45,6 +52,10 @@ int main(void)
   Clear_7219(0);
   Clear_7219(1);
 
+  // Initialize optical encoder variables
+  opt_enc_rpm_constant = opt_enc_rev_count / 80;
+  opt_enc_div_constant = 36000 / opt_enc_rev_count;
+
   while (1)
   {
     HAL_Delay(100);
@@ -64,7 +75,7 @@ int main(void)
       {
         divider_mode = 1;
         __HAL_TIM_SET_AUTORELOAD(&htim3, 200);
-        __HAL_TIM_SET_AUTORELOAD(&htim4, 2399);
+        __HAL_TIM_SET_AUTORELOAD(&htim4, opt_enc_rev_count - 1);
         TIM3->EGR = TIM_EGR_UG;
         TIM4->EGR = TIM_EGR_UG;
       }
@@ -137,18 +148,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       {
         degree = 0;
       } else {
-        degree = counter * 15;
+        degree = counter * opt_enc_div_constant;
       }
       Clear_7219(0);
       Number_7219_dot(0, degree);
     }
     else
     {
-      TIM4->CNT = 0x0000;
+      TIM4->CNT = 0x00;
       int speed = 0;
       if (__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim4))
       {
-        speed = (64799 - counter) / 30;
+        speed = (64799 - counter) / opt_enc_rpm_constant;
         if (counter == 0)
         {
           speed = 0;
@@ -156,7 +167,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       }
       else
       {
-        speed = counter / 30;
+        speed = counter / opt_enc_rpm_constant;
       }
       Clear_7219(0);
       Number_7219_non_decoding(0, speed);
